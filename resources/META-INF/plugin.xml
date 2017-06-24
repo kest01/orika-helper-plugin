@@ -25,13 +25,24 @@
   -->
 
   <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
+    <intentionAction>
+      <className>ru.kest.plugin.orika.OrikaMapperIntentionAction</className>
+      <category>Orika mapper</category>
+      <!--<descriptionDirectoryName>Create unit-test for Orika mapping</descriptionDirectoryName>-->
+
+    </intentionAction>
   </extensions>
 
+  <project-components>
+    <component>
+      <implementation-class>ru.kest.plugin.orika.OrikaMapperIntentionAction</implementation-class>
+    </component>
+  </project-components>
+
   <actions>
-    <group id="ru.kest.SampleMenu" text="_Sample Menu" description="Sample menu">
+    <group id="ru.kest.OrikaMenu" text="_Orika" description="Orika helper">
       <add-to-group group-id="ToolsMenu" anchor="last"  />
-      <action id="ru.kest.plugin.orika.HelloAlert" class="ru.kest.plugin.orika.HelloAlert" text="Hello _Alert" description="A test menu item" />
+      <action id="ru.kest.plugin.orika.SearchMappingAction" class="ru.kest.plugin.orika.SearchMappingAction" text="Search orika mappings without tests" description="Search orika mappings without tests" />
     </group>
   </actions>
 
