@@ -1,11 +1,14 @@
 package ru.kest.plugin.orika
 
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import com.intellij.psi.*
+import com.intellij.psi.PsiElement
+import ru.kest.plugin.orika.psi.OrikaElementFinder
+import ru.kest.plugin.orika.psi.OrikaElementParametersFinder
 
 /**
  * IntentionAction to propose creating unit-test for Orika mapping
@@ -14,10 +17,7 @@ import com.intellij.psi.*
  */
 class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
 
-//    private val LOG = Logger.getInstance(OrikaMapperIntentionAction::class.java)
-
-    val ORIKA_MAPPER_INTERFACE = "ma.glasnost.orika.MapperFacade"
-    val OBJECT = "java.lang.Object"
+    private val LOG = Logger.getInstance(OrikaMapperIntentionAction::class.java)
 
 
     override fun getFamilyName(): String {
@@ -29,44 +29,33 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
     }
 
     override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
-        if (!element.isWritable()) return false
 
-        if (element is PsiIdentifier) {
-            val parent = element.parent
-            if (parent is PsiReferenceExpression) {
-                val grandpa = parent.parent
-                if (grandpa is PsiMethodCallExpression) {
-                    val psiType = grandpa.methodExpression.qualifierExpression?.type
-                    if (psiType != null) {
-                        return isImplements(psiType, ORIKA_MAPPER_INTERFACE)
-                    }
-                }
-            }
-        }
-        return false
+        return OrikaElementFinder.isOrikaElement(element)
     }
 
     override fun invoke(project: Project, editor: Editor?, element: PsiElement) {
-        Messages.showMessageDialog(project, "Stab: Create test for Orika mapping", "Information", Messages.getInformationIcon())
+        if (!OrikaElementFinder.isOrikaElement(element)) {
+            LOG.info("Orika helper invoked on incorrect element")
+            Messages.showMessageDialog(project, "Orika helper invoked on incorrect element", "Information", Messages.getInformationIcon())
+            return
+        }
+        val classes = OrikaElementParametersFinder.getParamClasses(element)
+        if (classes == null) {
+            LOG.info("Orika classes not found")
+            return
+        }
+        val (sourceClass, destClass) = classes
+
+        LOG.info("Orika: source class: $sourceClass  - destination class: $destClass")
+        ApplicationManager.getApplication().invokeLater {
+            Messages.showMessageDialog(project, "Stab: Create test for Orika mapping", "Information", Messages.getInformationIcon())
+        }
+
     }
 
     override fun startInWriteAction(): Boolean {
         return true
     }
 
-    private fun isImplements(type: PsiType, className: String) : Boolean {
-        for (superType in type.superTypes) {
-            if (superType.canonicalText == className) {
-                return true
-            } else if (superType.canonicalText == OBJECT) {
-                continue
-            } else {
-                if (isImplements(superType, className)) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
 
 }
