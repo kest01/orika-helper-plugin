@@ -2,6 +2,7 @@ package ru.kest.plugin.orika.psi
 
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.PsiTypesUtil
 
 /**
  * Find classes used for mapping with Orika
@@ -10,36 +11,44 @@ import com.intellij.psi.util.PsiTreeUtil
  */
 object OrikaElementParametersFinder {
 
-    fun getParamClasses(targetElement: PsiElement) : Pair<String, String>? {
+    fun getParamClasses(targetElement: PsiElement) : Pair<PsiClass, PsiClass>? {
         val methodName = getMethodName(targetElement)
         when (methodName) {
             "map" -> {
                 val methodCallExpressionEl = PsiTreeUtil.getParentOfType(targetElement, PsiMethodCallExpression::class.java)
                 val parametersEl = PsiTreeUtil.findChildOfType(methodCallExpressionEl, PsiExpressionList::class.java)
 
-                val sourceType = getSourceType(PsiTreeUtil.findChildOfType(parametersEl, PsiReferenceExpression::class.java))
-                val destType = getDestType(PsiTreeUtil.findChildOfType(parametersEl, PsiClassObjectAccessExpression::class.java))
+                val sourceClass = getSourceClass(parametersEl)
+                val destClass = getDestClass(parametersEl)
 
-                if (sourceType == null || destType == null) {
+                if (sourceClass == null || destClass == null) {
                     return null
                 }
 
-                return Pair(sourceType.canonicalText, destType.canonicalText)
+                return Pair(sourceClass, destClass)
             }
             else -> TODO("unsupported Orika method $methodName")
         }
     }
 
-    fun getMethodName(parentElement: PsiElement) : String {
+    private fun getMethodName(parentElement: PsiElement) : String {
         return parentElement.text
     }
 
-    fun getSourceType(refEl : PsiReferenceExpression?) : PsiType? {
-        return refEl?.type
+    private fun getSourceClass(parentEl : PsiExpressionList?) : PsiClass? {
+        return getClass(
+                PsiTreeUtil.findChildOfType(parentEl, PsiReferenceExpression::class.java)?.type
+        )
     }
 
-    fun getDestType(refEl : PsiClassObjectAccessExpression?) : PsiType? {
-        return refEl?.operand?.type
+    private fun getDestClass(parentEl : PsiExpressionList?) : PsiClass? {
+        return getClass(
+                PsiTreeUtil.findChildOfType(parentEl, PsiClassObjectAccessExpression::class.java)?.operand?.type
+        )
+    }
+
+    private fun getClass(psiType : PsiType?) : PsiClass? {
+        return PsiTypesUtil.getPsiClass(psiType)
     }
 
 }
