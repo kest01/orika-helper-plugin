@@ -28,7 +28,7 @@
     <intentionAction>
       <className>ru.kest.plugin.orika.OrikaMapperIntentionAction</className>
       <category>Orika mapper</category>
-      <!--<descriptionDirectoryName>Create unit-test for Orika mapping</descriptionDirectoryName>-->
+      <descriptionDirectoryName>OrikaMapperIntentionAction</descriptionDirectoryName>
 
     </intentionAction>
   </extensions>

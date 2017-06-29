@@ -7,6 +7,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
+import ru.kest.plugin.orika.dialog.TestDestinationDialog
 import ru.kest.plugin.orika.psi.OrikaElementFinder
 import ru.kest.plugin.orika.psi.OrikaElementParametersFinder
 
@@ -47,8 +48,14 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
         val (sourceClass, destClass) = classes
 
         LOG.info("Orika: source class: $sourceClass  - destination class: $destClass")
+/*
         ApplicationManager.getApplication().invokeLater {
             Messages.showMessageDialog(project, "Stab: Create test for Orika mapping", "Information", Messages.getInformationIcon())
+        }
+*/
+        ApplicationManager.getApplication().invokeLater {
+            val dialog = TestDestinationDialog(sourceClass, null, project)
+            dialog.showAndGet()
         }
 
     }
