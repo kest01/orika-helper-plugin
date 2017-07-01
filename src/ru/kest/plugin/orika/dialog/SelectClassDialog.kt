@@ -1,17 +1,18 @@
 package ru.kest.plugin.orika.dialog
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.JavaProjectRootsUtil
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Pass
 import com.intellij.psi.*
-import com.intellij.refactoring.*
+import com.intellij.refactoring.PackageWrapper
+import com.intellij.refactoring.RefactoringBundle
 import com.intellij.refactoring.move.moveClassesOrPackages.DestinationFolderComboBox
 import com.intellij.refactoring.ui.PackageNameReferenceEditorCombo
 import com.intellij.refactoring.util.RefactoringMessageUtil
 import com.intellij.ui.*
-import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.UIUtil
@@ -21,10 +22,13 @@ import java.awt.Font
 import javax.swing.*
 
 /**
- * Dialog for choose destionation of new test
+ * Dialog for choose destionation of new test. Copied from CopyClassDialog
+ *
  * Created by KKharitonov on 29.06.2017.
  */
-class TestDestinationDialog : DialogWrapper {
+open class SelectClassDialog : DialogWrapper {
+
+    private val LOG = Logger.getInstance(SelectClassDialog::class.java)
 
     @NonNls private val RECENTS_KEY = "TestDestinationDialog.RECENTS_KEY"
 
@@ -33,7 +37,7 @@ class TestDestinationDialog : DialogWrapper {
     private val project: Project
     private val defaultTargetDirectory: PsiDirectory?
 
-    private val destinationComboBox = object : DestinationFolderComboBox() {
+    private val destinationRootComboBox = object : DestinationFolderComboBox() {
         override fun getTargetPackage(): String {
             return packageComboField!!.text.trim { it <= ' ' }
         }
@@ -44,24 +48,25 @@ class TestDestinationDialog : DialogWrapper {
     }
 
     private var packageComboField: ReferenceEditorComboWithBrowseButton? = null
-    private var destination: MoveDestination? = null
+    var clazzName: String? = null
+    var packageName: String? = null
 
-    constructor(aClass: PsiClass, defaultTargetDirectory: PsiDirectory?, project: Project) : super(project, true) {
+    constructor(description: String, className: String, defaultTargetDirectory: PsiDirectory?, project: Project) : super(project, true) {
         this.project = project
         this.defaultTargetDirectory = defaultTargetDirectory
-        informationLabel.text = "Unit test for classes ${aClass.name}"
+        title = "Create new unit test for Orika mapper"
+        informationLabel.text = description
         informationLabel.font = informationLabel.font.deriveFont(Font.BOLD)
 
         init()
-        destinationComboBox.setData(this.project, defaultTargetDirectory,
+        destinationRootComboBox.setData(this.project, defaultTargetDirectory,
                 object : Pass<String>() {
                     override fun pass(s: String?) {
-                        setErrorText(s, destinationComboBox)
+                        setErrorText(s, destinationRootComboBox)
                     }
                 }, packageComboField!!.childComponent)
-        testClassNameField.text = UsageViewUtil.getShortName(aClass)
+        testClassNameField.text = className
         testClassNameField.selectAll()
-        title = "Create new unit test for Orika mapper"
     }
 
     override fun createActions(): Array<Action> {
@@ -86,15 +91,15 @@ class TestDestinationDialog : DialogWrapper {
 
         val label = JLabel(RefactoringBundle.message("target.destination.folder"))
         val isMultipleSourceRoots = JavaProjectRootsUtil.getSuitableDestinationSourceRoots(project).size > 1
-        destinationComboBox.isVisible = isMultipleSourceRoots
+        destinationRootComboBox.isVisible = isMultipleSourceRoots
         label.isVisible = isMultipleSourceRoots
-        label.labelFor = destinationComboBox
+        label.labelFor = destinationRootComboBox
 
         return FormBuilder.createFormBuilder()
                 .addComponent(informationLabel)
                 .addLabeledComponent("Test name", testClassNameField, UIUtil.LARGE_VGAP)
                 .addLabeledComponent(packageLabel, localPackageComboField)
-                .addLabeledComponent(label, destinationComboBox)
+                .addLabeledComponent(label, destinationRootComboBox)
                 .panel
     }
 
@@ -107,10 +112,6 @@ class TestDestinationDialog : DialogWrapper {
             }
         }
         return qualifiedName
-    }
-
-    fun getTargetDirectory(): MoveDestination? {
-        return destination
     }
 
     fun getClassName(): String? {
@@ -134,8 +135,11 @@ class TestDestinationDialog : DialogWrapper {
             } else  {
                 try {
                     val targetPackage = PackageWrapper(manager, packageName)
-                    destination = destinationComboBox.selectDirectory(targetPackage, false)
+                    val destination = destinationRootComboBox.selectDirectory(targetPackage, false)
                     if (destination == null) return
+//                    val sourceRoot = destination.getTargetDirectory(defaultTargetDirectory)
+                    this.clazzName = className
+                    this.packageName = packageName
                 } catch (e: IncorrectOperationException) {
                     errorString[0] = e.message
                 }

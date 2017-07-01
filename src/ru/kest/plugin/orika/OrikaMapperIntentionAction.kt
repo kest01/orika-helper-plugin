@@ -7,7 +7,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
-import ru.kest.plugin.orika.dialog.TestDestinationDialog
+import ru.kest.plugin.orika.dialog.NewTestDestinationDialogWrapper
 import ru.kest.plugin.orika.psi.OrikaElementFinder
 import ru.kest.plugin.orika.psi.OrikaElementParametersFinder
 
@@ -37,25 +37,27 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
     override fun invoke(project: Project, editor: Editor?, element: PsiElement) {
         if (!OrikaElementFinder.isOrikaElement(element)) {
             LOG.info("Orika helper invoked on incorrect element")
-            Messages.showMessageDialog(project, "Orika helper invoked on incorrect element", "Information", Messages.getInformationIcon())
+            ApplicationManager.getApplication().invokeLater {
+                Messages.showMessageDialog(project, "Orika helper invoked on incorrect element", "Information", Messages.getErrorIcon())
+            }
             return
         }
         val classes = OrikaElementParametersFinder.getParamClasses(element)
         if (classes == null) {
             LOG.info("Orika classes not found")
+            ApplicationManager.getApplication().invokeLater {
+                Messages.showMessageDialog(project, "Orika classes not found", "Information", Messages.getErrorIcon())
+            }
             return
         }
         val (sourceClass, destClass) = classes
 
         LOG.info("Orika: source class: $sourceClass  - destination class: $destClass")
-/*
         ApplicationManager.getApplication().invokeLater {
-            Messages.showMessageDialog(project, "Stab: Create test for Orika mapping", "Information", Messages.getInformationIcon())
-        }
-*/
-        ApplicationManager.getApplication().invokeLater {
-            val dialog = TestDestinationDialog(sourceClass, null, project)
-            dialog.showAndGet()
+            val dialog = NewTestDestinationDialogWrapper(sourceClass, destClass, element, project)
+            if (dialog.showAndGet()) {
+                LOG.info("Orika: selected destinations ${dialog.getTestFile()}")
+            }
         }
 
     }
@@ -63,6 +65,5 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
     override fun startInWriteAction(): Boolean {
         return true
     }
-
 
 }
