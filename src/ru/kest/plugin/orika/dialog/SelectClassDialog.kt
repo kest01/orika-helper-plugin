@@ -17,6 +17,7 @@ import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.NonNls
+import ru.kest.plugin.orika.entity.TestFile
 import java.awt.BorderLayout
 import java.awt.Font
 import javax.swing.*
@@ -48,8 +49,7 @@ open class SelectClassDialog : DialogWrapper {
     }
 
     private var packageComboField: ReferenceEditorComboWithBrowseButton? = null
-    var clazzName: String? = null
-    var packageName: String? = null
+    var testFile: TestFile? = null
 
     constructor(description: String, className: String, defaultTargetDirectory: PsiDirectory?, project: Project) : super(project, true) {
         this.project = project
@@ -127,7 +127,7 @@ open class SelectClassDialog : DialogWrapper {
         val nameHelper = PsiNameHelper.getInstance(manager.project)
         if (packageName.isNotEmpty() && !nameHelper.isQualifiedName(packageName)) {
             errorString[0] = RefactoringBundle.message("invalid.target.package.name.specified")
-        } else if (className != null && className.isEmpty()) {
+        } else if (className == null || className.isEmpty()) {
             errorString[0] = RefactoringBundle.message("no.class.name.specified")
         } else {
             if (!nameHelper.isIdentifier(className)) {
@@ -137,9 +137,9 @@ open class SelectClassDialog : DialogWrapper {
                     val targetPackage = PackageWrapper(manager, packageName)
                     val destination = destinationRootComboBox.selectDirectory(targetPackage, false)
                     if (destination == null) return
-//                    val sourceRoot = destination.getTargetDirectory(defaultTargetDirectory)
-                    this.clazzName = className
-                    this.packageName = packageName
+                    val targetDirectory = destination.getTargetDirectory(defaultTargetDirectory)
+                    this.testFile = TestFile(className, packageName, targetDirectory)
+
                 } catch (e: IncorrectOperationException) {
                     errorString[0] = e.message
                 }

@@ -30,7 +30,6 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
     }
 
     override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
-
         return OrikaElementFinder.isOrikaElement(element)
     }
 
@@ -50,13 +49,14 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
             }
             return
         }
-        val (sourceClass, destClass) = classes
 
-        LOG.info("Orika: source class: $sourceClass  - destination class: $destClass")
+        LOG.info("Orika: source class: ${classes.sourceClass} - destination class: ${classes.destClass}")
         ApplicationManager.getApplication().invokeLater {
-            val dialog = NewTestDestinationDialogWrapper(sourceClass, destClass, element, project)
+            val dialog = NewTestDestinationDialogWrapper(classes, element, project)
             if (dialog.showAndGet()) {
-                LOG.info("Orika: selected destinations ${dialog.getTestFile()}")
+                val testFile = dialog.testFile
+                LOG.info("Orika: selected destinations $testFile")
+
             }
         }
 

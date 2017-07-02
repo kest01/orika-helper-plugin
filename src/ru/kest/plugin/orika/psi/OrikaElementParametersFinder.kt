@@ -3,6 +3,7 @@ package ru.kest.plugin.orika.psi
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiTypesUtil
+import ru.kest.plugin.orika.entity.MappingClasses
 
 /**
  * Find classes used for mapping with Orika
@@ -11,7 +12,7 @@ import com.intellij.psi.util.PsiTypesUtil
  */
 object OrikaElementParametersFinder {
 
-    fun getParamClasses(targetElement: PsiElement) : Pair<PsiClass, PsiClass>? {
+    fun getParamClasses(targetElement: PsiElement) : MappingClasses? {
         val methodName = getMethodName(targetElement)
         when (methodName) {
             "map" -> {
@@ -25,7 +26,7 @@ object OrikaElementParametersFinder {
                     return null
                 }
 
-                return Pair(sourceClass, destClass)
+                return MappingClasses(sourceClass, destClass)
             }
             else -> TODO("unsupported Orika method $methodName")
         }

@@ -4,24 +4,24 @@ import com.intellij.ide.util.PackageUtil
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.psi.*
-import ru.kest.plugin.orika.entity.TestFile
+import ru.kest.plugin.orika.entity.MappingClasses
 
 /**
  * Wrapper for SelectClassDialog
  *
  * Created by KKharitonov on 30.06.2017.
  */
-class NewTestDestinationDialogWrapper(sourceClass: PsiClass, destClass: PsiClass, element: PsiElement, project: Project)
+class NewTestDestinationDialogWrapper(classes: MappingClasses, element: PsiElement, project: Project)
     : SelectClassDialog(
-        "Unit test for classes ${sourceClass.name} and ${destClass.name}",
-        Companion.getTestClassName(sourceClass, destClass),
+        "Unit test for classes ${classes.sourceClass.name} and ${classes.destClass.name}",
+        Companion.getTestClassName(classes),
         Companion.findDefaultDirectory(element),
         project
 ) {
 
     companion object {
-        private fun getTestClassName(sourceClass: PsiClass, destClass: PsiClass) : String {
-            return "${sourceClass.name}To${destClass.name}MapperTest"
+        private fun getTestClassName(classes: MappingClasses) : String {
+            return "${classes.sourceClass.name}To${classes.destClass.name}MapperTest"
         }
 
         private fun getMapperPackage(element: PsiElement) : String? {
@@ -43,12 +43,4 @@ class NewTestDestinationDialogWrapper(sourceClass: PsiClass, destClass: PsiClass
         }
     }
 
-    fun getTestFile() : TestFile? {
-        val clazzName = this.clazzName
-        val packageName = this.packageName
-        if (clazzName != null && packageName != null) {
-            return TestFile(clazzName, packageName)
-        }
-        return null
-    }
 }
