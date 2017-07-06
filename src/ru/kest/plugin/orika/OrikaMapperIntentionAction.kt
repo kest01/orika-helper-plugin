@@ -2,14 +2,17 @@ package ru.kest.plugin.orika
 
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
 import ru.kest.plugin.orika.dialog.NewTestDestinationDialogWrapper
 import ru.kest.plugin.orika.psi.OrikaElementFinder
 import ru.kest.plugin.orika.psi.OrikaElementParametersFinder
+import ru.kest.plugin.orika.test.TestCreator
 
 /**
  * IntentionAction to propose creating unit-test for Orika mapping
@@ -56,7 +59,13 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
             if (dialog.showAndGet()) {
                 val testFile = dialog.testFile
                 LOG.info("Orika: selected destinations $testFile")
-
+                val testCreator = TestCreator(classes, testFile!!, project)
+                val file = testCreator.create()
+                WriteCommandAction.runWriteCommandAction(project) {
+                    testFile.directory.add(file)
+                    FileEditorManager.getInstance(project).openFile(
+                            testFile.directory.findFile(file.name)!!.virtualFile, true)
+                }
             }
         }
 

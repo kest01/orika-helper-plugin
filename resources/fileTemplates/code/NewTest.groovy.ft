@@ -1,0 +1,12 @@
+#if (${PACKAGE_NAME} && $PACKAGE_NAME != "" )package ${PACKAGE_NAME}
+#end
+
+${IMPORTS}
+
+/**
+ * Test for Orika mapping for classes ${SOURCE_CLASS} and ${DEST_CLASS}
+ */
+class ${TEST_CLASSNAME} {
+
+    ${METHODS}
+}

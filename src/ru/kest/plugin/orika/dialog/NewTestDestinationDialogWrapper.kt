@@ -29,7 +29,7 @@ class NewTestDestinationDialogWrapper(classes: MappingClasses, element: PsiEleme
             if (file is PsiJavaFile) {
                 val packageArray = file.packageName.split('.')
                 if (packageArray.size >= 4) {
-                    return packageArray.slice(0..3).joinToString(separator = ".") + ".mapperz"
+                    return packageArray.slice(0..3).joinToString(separator = ".") + ".mapper"
                 }
             }
             return ""
