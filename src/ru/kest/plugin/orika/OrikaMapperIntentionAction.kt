@@ -12,7 +12,7 @@ import com.intellij.psi.PsiElement
 import ru.kest.plugin.orika.dialog.NewTestDestinationDialogWrapper
 import ru.kest.plugin.orika.psi.OrikaElementFinder
 import ru.kest.plugin.orika.psi.OrikaElementParametersFinder
-import ru.kest.plugin.orika.test.TestCreator
+import ru.kest.plugin.orika.test.TestClassCreator
 
 /**
  * IntentionAction to propose creating unit-test for Orika mapping
@@ -59,7 +59,7 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
             if (dialog.showAndGet()) {
                 val testFile = dialog.testFile
                 LOG.info("Orika: selected destinations $testFile")
-                val testCreator = TestCreator(classes, testFile!!, project)
+                val testCreator = TestClassCreator(classes, testFile!!, project)
                 val file = testCreator.create()
                 WriteCommandAction.runWriteCommandAction(project) {
                     testFile.directory.add(file)

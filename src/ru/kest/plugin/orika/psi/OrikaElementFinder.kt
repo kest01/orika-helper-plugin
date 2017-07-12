@@ -23,7 +23,7 @@ object OrikaElementFinder {
                 if (grandpa is PsiMethodCallExpression) {
                     val psiType = grandpa.methodExpression.qualifierExpression?.type
                     if (psiType != null) {
-                        return isImplements(psiType, ORIKA_MAPPER_INTERFACE)
+                        return PsiUtils.isImplements(psiType, ORIKA_MAPPER_INTERFACE)
                     }
                 }
             }
@@ -31,20 +31,7 @@ object OrikaElementFinder {
         return false
     }
 
-    private fun isImplements(type: PsiType, className: String) : Boolean {
-        for (superType in type.superTypes) {
-            if (superType.canonicalText == className) {
-                return true
-            } else if (superType.canonicalText == OBJECT) {
-                continue
-            } else {
-                if (isImplements(superType, className)) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
+
 
 
 }

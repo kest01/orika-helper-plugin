@@ -7,4 +7,4 @@ import com.intellij.psi.PsiClass
  *
  * Created by KKharitonov on 02.07.2017.
  */
-data class MappingClasses(val sourceClass: PsiClass, val destClass: PsiClass)
+data class MappingClasses(val sourceClass: PsiClass, val destClass: PsiClass, val mapperClass: PsiClass)

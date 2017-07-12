@@ -10,18 +10,19 @@ import ru.kest.plugin.orika.entity.MappingClasses
 import ru.kest.plugin.orika.entity.TestFile
 
 /**
- * Creates groovy unit test
+ * Create groovy unit test
  *
  * Created by KKharitonov on 01.07.2017.
  */
-class TestCreator(val classes: MappingClasses, val testFile: TestFile, val project: Project) {
+class TestClassCreator(val classes: MappingClasses, val testFile: TestFile, val project: Project) {
 
+    val methodCreator = TestMethodCreator(classes, project)
 //    private val LOG = Logger.getInstance(TestCreator::class.java)
 
-    private val TEST_TEMPLATE = "NewTest.groovy"
+    private val TEST_TEMPLATE = "TestClass.groovy"
 
     fun create() : PsiFile {
-        val content = getTemplate().getText(generateTemplateParams())
+        val content = getClassTemplate().getText(generateTemplateParams())
         val file = createNewFile(content)
         return file
     }
@@ -31,7 +32,7 @@ class TestCreator(val classes: MappingClasses, val testFile: TestFile, val proje
                 .createFileFromText(testFile.className + ".groovy", GroovyFileType.GROOVY_FILE_TYPE, content)
     }
 
-    private fun getTemplate() : FileTemplate {
+    private fun getClassTemplate() : FileTemplate {
         return FileTemplateManager.getInstance(project).getCodeTemplate(TEST_TEMPLATE)
     }
 
@@ -41,19 +42,20 @@ class TestCreator(val classes: MappingClasses, val testFile: TestFile, val proje
         params.put("TEST_CLASSNAME", testFile.className)
         params.put("SOURCE_CLASS", classes.sourceClass.name!!)
         params.put("DEST_CLASS", classes.destClass.name!!)
+        params.put("MAPPER_CLASS", classes.mapperClass.qualifiedName!!)
         params.put("IMPORTS", getImports())
-        params.put("METHODS", getTestContent())
+        params.put("TEST_METHOD", getTestMethodContent())
 
         return params
     }
 
-    private fun getTestContent(): String {
-//        TODO("not implemented")
-        return ""
+    private fun getTestMethodContent(): String {
+        return methodCreator.generate()
     }
 
     private fun  getImports(): String {
 //        TODO("not implemented")
+//        val imports = listOf<String>()
         return ""
     }
 
