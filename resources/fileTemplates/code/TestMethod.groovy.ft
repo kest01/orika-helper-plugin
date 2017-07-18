@@ -1,19 +1,13 @@
-#macro(printFields $childFields)
+#macro(createSource $childFields)
     #foreach($field in $childFields)
-        #if (!$field.children || $field.children.isEmpty())
-            $field.name: $field.value#if( $foreach.hasNext ),#end
-        #else
-            $field.name: $field.value
-            #printFields($field.children)
-            $field.suffix#if( $foreach.hasNext ),#end
-        #end
-
+        #if ($field.name) $field.name: #end$field.value#if ($field.children && !$field.children.isEmpty())
+            #createSource($field.children)$field.suffix#end#if( $foreach.hasNext ),
+            #end
     #end
 #end
-
 @Test
 void "${METHOD_NAME}"() {
     def src = new ${SOURCE_CLASS}(
-        #printFields($FIELDS)
+        #createSource($FIELDS)
     )
 }

@@ -4,11 +4,12 @@ import com.intellij.ide.fileTemplates.FileTemplate
 import com.intellij.ide.fileTemplates.FileTemplateManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.psi.*
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiType
 import com.intellij.psi.impl.source.PsiClassReferenceType
-import ru.kest.plugin.orika.entity.Field
-import ru.kest.plugin.orika.entity.MappingClasses
+import ru.kest.plugin.orika.entity.*
 import ru.kest.plugin.orika.psi.PsiUtils
+import java.lang.IllegalStateException
 
 /**
  * Create groovy unit test
@@ -17,9 +18,12 @@ import ru.kest.plugin.orika.psi.PsiUtils
  */
 class TestMethodCreator(val classes: MappingClasses, val project: Project) {
 
+    val imports = Imports()
+
     private val log = Logger.getInstance(TestMethodCreator::class.java)
 
     private val METHOD_TEMPLATE = "TestMethod.groovy"
+    private val MAX_NESTED_OBJECTS = 100
 
     private val dataGenerator = MockDataGenerator()
 
@@ -38,24 +42,25 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
         params.put("SOURCE_CLASS", classes.sourceClass.name!!)
         params.put("DEST_CLASS", classes.destClass.name!!)
         params.put("METHOD_NAME", "${classes.sourceClass.name} to ${classes.destClass.name}")
-        params.put("FIELDS", getClassFields(classes.sourceClass))
+        params.put("FIELDS", getClassFields(classes.sourceClass, 0))
 
         return params
     }
 
-    private fun getClassFields(sourceClass: PsiClass): List<Field> {
+    private fun getClassFields(sourceClass: PsiClass, recursionCounter: Int): List<Field> {
         val result = ArrayList<Field>()
 
-        for (property in sourceClass.allFields) {
-            log.info("${sourceClass.name}: $property")
-            result.add(calcFieldByType(property))
+        for (psiField in sourceClass.allFields) {
+            log.info("${sourceClass.name}: $psiField")
+            result.add(fieldByType(psiField.name, psiField.type, recursionCounter + 1))
         }
         return result
     }
 
-    private fun calcFieldByType(psiField: PsiField) : Field {
-        val fieldName = psiField.name ?: ""
-        val type = psiField.type
+    private fun fieldByType(fieldName: String?, type: PsiType, recursionCounter: Int): Field {
+        if (recursionCounter > MAX_NESTED_OBJECTS) {
+            throw IllegalStateException("Recursion detected on parsing class ${classes.sourceClass}")
+        }
         when (type.canonicalText) {
             "byte", "java.lang.Byte",
             "int", "java.lang.Integer",
@@ -66,24 +71,27 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
             "double", "java.lang.Double" -> return Field(fieldName, dataGenerator.getNextDouble().toString())
             "boolean", "java.lang.Boolean" -> return Field(fieldName, dataGenerator.getNextBoolean().toString())
             "java.lang.String" -> return Field(fieldName, "'$fieldName'")
+        // TODO add Date type, Map
             else -> {
                 if (isCollection(type)) {
                     if (type is PsiClassReferenceType && type.parameters.isNotEmpty()) {
                         val genericType = type.parameters[0]
+                        imports.add(genericType.canonicalText)
                         return Field(
                                 fieldName,
-                                "[new ${genericType.canonicalText}(",
-                                getClassFields(PsiUtils.getClass(genericType)!!),
-                                ")]"
+                                "[",
+                                children = listOf(fieldByType(null, genericType, recursionCounter + 1)),
+                                suffix = "]"
                         )
                     } else {
                         return defaultField(fieldName, fieldName)
                     }
                 } else { // Object
+                    imports.add(type.canonicalText)
                     return Field(
                             fieldName,
-                            "new ${type.canonicalText}(",
-                            getClassFields(PsiUtils.getClass(type)!!),
+                            "new ${type.presentableText}(",
+                            getClassFields(PsiUtils.getClass(type)!!, recursionCounter + 1),
                             ")"
                     )
                 }
@@ -91,7 +99,7 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
         }
     }
 
-    private fun defaultField(name: String, value: String?) : Field{
+    private fun defaultField(name: String?, value: String?) : Field{
         return Field(name, "'$value'")
     }
 

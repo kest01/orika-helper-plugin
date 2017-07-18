@@ -9,6 +9,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
+import org.jetbrains.plugins.groovy.lang.psi.util.PsiUtil
 import ru.kest.plugin.orika.dialog.NewTestDestinationDialogWrapper
 import ru.kest.plugin.orika.psi.OrikaElementFinder
 import ru.kest.plugin.orika.psi.OrikaElementParametersFinder
@@ -63,8 +64,9 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
                 val file = testCreator.create()
                 WriteCommandAction.runWriteCommandAction(project) {
                     testFile.directory.add(file)
-                    FileEditorManager.getInstance(project).openFile(
-                            testFile.directory.findFile(file.name)!!.virtualFile, true)
+                    val reopenedFile = testFile.directory.findFile(file.name)!!
+                    PsiUtil.reformatCode(reopenedFile)
+                    FileEditorManager.getInstance(project).openFile(reopenedFile.virtualFile, true)
                 }
             }
         }

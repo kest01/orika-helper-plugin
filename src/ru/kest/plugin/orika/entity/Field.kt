@@ -8,19 +8,19 @@ package ru.kest.plugin.orika.entity
  */
 class Field {
 
-    val name: String
+    val name: String?
     val value: String
     val children: List<Field>?
     val suffix: String?
 
-    constructor(name: String, value: String) {
+    constructor(name: String?, value: String) {
         this.name = name
         this.value = value
         children = null
         suffix = null
     }
 
-    constructor(name: String, value: String, children: List<Field>, suffix: String) {
+    constructor(name: String?, value: String, children: List<Field>, suffix: String) {
         this.name = name
         this.value = value
         this.children = children

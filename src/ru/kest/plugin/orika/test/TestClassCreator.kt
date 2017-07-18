@@ -6,8 +6,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import org.jetbrains.plugins.groovy.GroovyFileType
-import ru.kest.plugin.orika.entity.MappingClasses
-import ru.kest.plugin.orika.entity.TestFile
+import ru.kest.plugin.orika.entity.*
 
 /**
  * Create groovy unit test
@@ -42,9 +41,9 @@ class TestClassCreator(val classes: MappingClasses, val testFile: TestFile, val 
         params.put("TEST_CLASSNAME", testFile.className)
         params.put("SOURCE_CLASS", classes.sourceClass.name!!)
         params.put("DEST_CLASS", classes.destClass.name!!)
-        params.put("MAPPER_CLASS", classes.mapperClass.qualifiedName!!)
-        params.put("IMPORTS", getImports())
+        params.put("MAPPER_CLASS", classes.mapperClass.name!!)
         params.put("TEST_METHOD", getTestMethodContent())
+        params.put("IMPORTS", getImports(methodCreator.imports))
 
         return params
     }
@@ -53,10 +52,12 @@ class TestClassCreator(val classes: MappingClasses, val testFile: TestFile, val 
         return methodCreator.generate()
     }
 
-    private fun  getImports(): String {
-//        TODO("not implemented")
-//        val imports = listOf<String>()
-        return ""
+    private fun  getImports(imports: Imports): String {
+        return imports.add("org.junit.Test")
+                .add(classes.sourceClass.qualifiedName!!)
+                .add(classes.destClass.qualifiedName!!)
+                .add(classes.mapperClass.qualifiedName!!)
+                .build()
     }
 
 }
