@@ -5,9 +5,36 @@
             #end
     #end
 #end
+#macro(createAssert $prefix $childFields)
+    #foreach($field in $childFields)
+        #if ($field.children && !$field.children.isEmpty())
+            #if (!$field.name)
+                #set( $len = $prefix.length() - 1 )
+                #set( $shortPrefix = $prefix.substring(0, $len) )
+                #set( $newPrefix = "${shortPrefix}[0]." )
+            #else
+                #set( $newPrefix = "${prefix}${field.name}." )
+            #end
+            #createAssert($newPrefix $field.children)
+        #else
+            #if (!$field.name)
+                #set( $len = $prefix.length() - 1 )
+                #set( $shortPrefix = $prefix.substring(0, $len) )
+                #set( $newPrefix = "${shortPrefix}[0]" )
+    assert result.${newPrefix} == ${field.value}
+            #else
+    assert result.${prefix}${field.name} == ${field.value}
+            #end
+        #end
+    #end
+#end
 @Test
 void "${METHOD_NAME}"() {
-    def src = new ${SOURCE_CLASS}(
-        #createSource($FIELDS)
+    def result = mapper.map(new ${SOURCE_CLASS}(
+            #createSource($FIELDS)
+        ),
+        ${DEST_CLASS}
     )
+
+    #createAssert("" $FIELDS)
 }
