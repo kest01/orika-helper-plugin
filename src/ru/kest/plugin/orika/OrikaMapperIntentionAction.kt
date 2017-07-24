@@ -61,12 +61,19 @@ class OrikaMapperIntentionAction : PsiElementBaseIntentionAction() {
                 val testFile = dialog.testFile
                 LOG.info("Orika: selected destinations $testFile")
                 val testCreator = TestClassCreator(classes, testFile!!, project)
-                val file = testCreator.create()
-                WriteCommandAction.runWriteCommandAction(project) {
-                    testFile.directory.add(file)
-                    val reopenedFile = testFile.directory.findFile(file.name)!!
-                    PsiUtil.reformatCode(reopenedFile)
-                    FileEditorManager.getInstance(project).openFile(reopenedFile.virtualFile, true)
+                try {
+                    val file = testCreator.create()
+                    WriteCommandAction.runWriteCommandAction(project) {
+                        testFile.directory.add(file)
+                        val reopenedFile = testFile.directory.findFile(file.name)!!
+                        PsiUtil.reformatCode(reopenedFile)
+                        FileEditorManager.getInstance(project).openFile(reopenedFile.virtualFile, true)
+                    }
+                } catch(e: Exception) {
+                    LOG.info("Error during create Groovy test: ${e.message}")
+                    ApplicationManager.getApplication().invokeLater {
+                        Messages.showMessageDialog(project, "Error during create Groovy test: ${e.message}", "Information", Messages.getErrorIcon())
+                    }
                 }
             }
         }

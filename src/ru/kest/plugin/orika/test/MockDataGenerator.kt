@@ -9,6 +9,8 @@ class MockDataGenerator {
 
     private var intCounter = 1
     private var bool = false
+    private var dateDay = 1
+
 
     fun getNextInt() = intCounter++
 
@@ -17,6 +19,10 @@ class MockDataGenerator {
     fun getNextBoolean() : Boolean {
         bool = !bool
         return bool
+    }
+
+    fun getNextDate() : String {
+        return "DateUtil.setDate(${dateDay++}, Calendar.DECEMBER, 2015)"
     }
 
 }

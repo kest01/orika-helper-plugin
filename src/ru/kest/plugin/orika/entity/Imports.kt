@@ -15,7 +15,7 @@ class Imports {
     }
 
     fun build() : String {
-        return imports.joinToString(separator = "\n")
+        return imports.sorted().joinToString(separator = "\n")
     }
 
     private fun import(className: String) : String = "import $className"

@@ -71,7 +71,11 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
             "double", "java.lang.Double" -> return Field(fieldName, dataGenerator.getNextDouble().toString())
             "boolean", "java.lang.Boolean" -> return Field(fieldName, dataGenerator.getNextBoolean().toString())
             "java.lang.String" -> return Field(fieldName, "'$fieldName'")
-        // TODO add Date type, Map
+            "java.util.Date", "javax.xml.datatype.XMLGregorianCalendar" -> {
+                imports.add("com.luxoft.mmc.test.utils.DateUtil")
+                return Field(fieldName, dataGenerator.getNextDate())
+            }
+            // TODO add array, Map support
             else -> {
                 if (isCollection(type)) {
                     if (type is PsiClassReferenceType && type.parameters.isNotEmpty()) {
@@ -86,6 +90,14 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
                     } else {
                         return defaultField(fieldName, fieldName)
                     }
+                } else if (isEnum(type)) {
+                    val enumFields = PsiUtils.getClass(type)?.fields
+                    if (enumFields != null && enumFields.isNotEmpty()) {
+                        imports.add(type.canonicalText)
+                        return Field(fieldName, "${type.presentableText}.${enumFields[0].name}")
+                    } else return defaultField(fieldName, fieldName)
+                } else if (type.canonicalText.startsWith("java")) {
+                    return defaultField(fieldName, fieldName)
                 } else { // Object
                     imports.add(type.canonicalText)
                     return Field(
@@ -105,6 +117,10 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
 
     private fun isCollection(type: PsiType) : Boolean {
         return PsiUtils.isImplements(type, "java.util.Collection")
+    }
+
+    private fun isEnum(type: PsiType) : Boolean {
+        return PsiUtils.isImplements(type, "java.lang.Enum")
     }
 
 }
