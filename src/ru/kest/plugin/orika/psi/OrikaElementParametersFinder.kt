@@ -15,7 +15,6 @@ object OrikaElementParametersFinder {
         val methodName = getMethodName(targetElement)
         when (methodName) {
             "map" -> {
-                // TODO Add support of non-reference parameters: functions calls, new statements
                 val methodCallExpressionEl = PsiTreeUtil.getParentOfType(targetElement, PsiMethodCallExpression::class.java)
                 val parametersEl = PsiTreeUtil.findChildOfType(methodCallExpressionEl, PsiExpressionList::class.java)
 
@@ -45,9 +44,10 @@ object OrikaElementParametersFinder {
     }
 
     private fun getSourceClass(parentEl : PsiExpressionList?) : PsiClass? {
-        return PsiUtils.getClass(
-                PsiTreeUtil.findChildOfType(parentEl, PsiReferenceExpression::class.java)?.type
-        )
+        if (parentEl != null && parentEl.expressions.isNotEmpty()) {
+            return PsiUtils.getClass(parentEl.expressions[0].type)
+        }
+        return null
     }
 
     private fun getDestClass(parentEl : PsiExpressionList?) : PsiClass? {

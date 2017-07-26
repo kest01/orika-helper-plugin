@@ -10,7 +10,6 @@ import com.intellij.psi.*
 object OrikaElementFinder {
 
     val ORIKA_MAPPER_INTERFACE = "ma.glasnost.orika.MapperFacade"
-    val OBJECT = "java.lang.Object"
 
 
     fun isOrikaElement(element: PsiElement) : Boolean {

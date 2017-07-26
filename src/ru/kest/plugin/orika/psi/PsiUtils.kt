@@ -11,11 +11,13 @@ import com.intellij.psi.util.PsiTypesUtil
  */
 object PsiUtils {
 
+    val OBJECT = "java.lang.Object"
+
     fun isImplements(type: PsiType, className: String) : Boolean {
         for (superType in type.superTypes) {
             if (superType.canonicalText.startsWith(className)) {
                 return true
-            } else if (superType.canonicalText == OrikaElementFinder.OBJECT) {
+            } else if (superType.canonicalText == OBJECT) {
                 continue
             } else {
                 if (isImplements(superType, className)) {
