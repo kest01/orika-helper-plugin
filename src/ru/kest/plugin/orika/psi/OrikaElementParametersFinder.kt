@@ -1,6 +1,7 @@
 package ru.kest.plugin.orika.psi
 
 import com.intellij.psi.*
+import com.intellij.psi.impl.source.PsiImmediateClassType
 import com.intellij.psi.util.PsiTreeUtil
 import ru.kest.plugin.orika.entity.MappingClasses
 
@@ -18,9 +19,9 @@ object OrikaElementParametersFinder {
                 val methodCallExpressionEl = PsiTreeUtil.getParentOfType(targetElement, PsiMethodCallExpression::class.java)
                 val parametersEl = PsiTreeUtil.findChildOfType(methodCallExpressionEl, PsiExpressionList::class.java)
 
-                val sourceClass = getSourceClass(parametersEl)
-                val destClass = getDestClass(parametersEl)
-                val mapperClass = getMapperClass(parametersEl)
+                val sourceClass = PsiUtils.getClass(getSourceClass(parametersEl))
+                val destClass = PsiUtils.getClass(getDestClass(parametersEl))
+                val mapperClass = PsiUtils.getClass(getMapperClass(parametersEl))
 
                 if (sourceClass == null || destClass == null || mapperClass == null) {
                     return null
@@ -32,28 +33,33 @@ object OrikaElementParametersFinder {
         }
     }
 
-    private fun getMapperClass(parametersEl: PsiExpressionList?): PsiClass? {
+    private fun getMapperClass(parametersEl: PsiExpressionList?): PsiType? {
 //        (targetElement.parent.parent as PsiMethodCallExpressionImpl).methodExpression.qualifierExpression.type.canonicalText
-        return PsiUtils.getClass(
-                PsiTreeUtil.getParentOfType(parametersEl, PsiMethodCallExpression::class.java)
-                        ?.methodExpression?.qualifierExpression?.type)
+        return PsiTreeUtil.getParentOfType(parametersEl, PsiMethodCallExpression::class.java)
+                        ?.methodExpression?.qualifierExpression?.type
     }
 
     private fun getMethodName(parentElement: PsiElement) : String {
         return parentElement.text
     }
 
-    private fun getSourceClass(parentEl : PsiExpressionList?) : PsiClass? {
+    private fun getSourceClass(parentEl : PsiExpressionList?) : PsiType? {
         if (parentEl != null && parentEl.expressions.isNotEmpty()) {
-            return PsiUtils.getClass(parentEl.expressions[0].type)
+            return parentEl.expressions[0].type
         }
         return null
     }
 
-    private fun getDestClass(parentEl : PsiExpressionList?) : PsiClass? {
-        return PsiUtils.getClass(
-                PsiTreeUtil.findChildOfType(parentEl, PsiClassObjectAccessExpression::class.java)?.operand?.type
-        )
+    private fun getDestClass(parentEl : PsiExpressionList?) : PsiType? {
+        if (parentEl != null && parentEl.expressions.isNotEmpty() && parentEl.expressions.size >= 2) {
+            val secondParamType = parentEl.expressions[1].type
+            if (secondParamType is PsiImmediateClassType) {
+                return secondParamType.parameters[0]
+            } else {
+                return secondParamType
+            }
+        }
+        return null
     }
 
 }
