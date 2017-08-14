@@ -77,7 +77,7 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
             }
             // TODO add array, Map support
             else -> {
-                if (isCollection(type)) {
+                if (PsiUtils.isCollection(type)) {
                     if (type is PsiClassReferenceType && type.parameters.isNotEmpty()) {
                         val genericType = type.parameters[0]
                         imports.add(genericType.canonicalText)
@@ -90,7 +90,7 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
                     } else {
                         return defaultField(fieldName, fieldName)
                     }
-                } else if (isEnum(type)) {
+                } else if (PsiUtils.isEnum(type)) {
                     val enumFields = PsiUtils.getClass(type)?.fields
                     if (enumFields != null && enumFields.isNotEmpty()) {
                         imports.add(type.canonicalText)
@@ -113,14 +113,6 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
 
     private fun defaultField(name: String?, value: String?) : Field{
         return Field(name, "'$value'")
-    }
-
-    private fun isCollection(type: PsiType) : Boolean {
-        return PsiUtils.isImplements(type, "java.util.Collection")
-    }
-
-    private fun isEnum(type: PsiType) : Boolean {
-        return PsiUtils.isImplements(type, "java.lang.Enum")
     }
 
 }
