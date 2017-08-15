@@ -10,7 +10,6 @@ import com.intellij.psi.util.PsiUtil
  *
  * Created by KKharitonov on 07.07.2017.
  */
-object PsiUtils {
 
     val OBJECT = "java.lang.Object"
 
@@ -43,5 +42,3 @@ object PsiUtils {
 
     fun getGenericType(type: PsiType?) =
             PsiUtil.extractIterableTypeParameter(type, false)
-
-}

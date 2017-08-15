@@ -8,7 +8,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.source.PsiClassReferenceType
 import ru.kest.plugin.orika.entity.*
-import ru.kest.plugin.orika.psi.PsiUtils
+import ru.kest.plugin.orika.psi.*
 import java.lang.IllegalStateException
 
 /**
@@ -77,7 +77,7 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
             }
             // TODO add array, Map support
             else -> {
-                if (PsiUtils.isCollection(type)) {
+                if (isCollection(type)) {
                     if (type is PsiClassReferenceType && type.parameters.isNotEmpty()) {
                         val genericType = type.parameters[0]
                         imports.add(genericType.canonicalText)
@@ -90,8 +90,8 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
                     } else {
                         return defaultField(fieldName, fieldName)
                     }
-                } else if (PsiUtils.isEnum(type)) {
-                    val enumFields = PsiUtils.getClass(type)?.fields
+                } else if (isEnum(type)) {
+                    val enumFields = getClass(type)?.fields
                     if (enumFields != null && enumFields.isNotEmpty()) {
                         imports.add(type.canonicalText)
                         return Field(fieldName, "${type.presentableText}.${enumFields[0].name}")
@@ -103,7 +103,7 @@ class TestMethodCreator(val classes: MappingClasses, val project: Project) {
                     return Field(
                             fieldName,
                             "new ${type.presentableText}(",
-                            getClassFields(PsiUtils.getClass(type)!!, recursionCounter + 1),
+                            getClassFields(getClass(type)!!, recursionCounter + 1),
                             ")"
                     )
                 }

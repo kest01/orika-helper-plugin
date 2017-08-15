@@ -22,7 +22,7 @@ object OrikaElementFinder {
                 if (grandpa is PsiMethodCallExpression) {
                     val psiType = grandpa.methodExpression.qualifierExpression?.type
                     if (psiType != null) {
-                        return PsiUtils.isImplements(psiType, ORIKA_MAPPER_INTERFACE)
+                        return isImplements(psiType, ORIKA_MAPPER_INTERFACE)
                     }
                 }
             }

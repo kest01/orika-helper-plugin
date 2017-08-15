@@ -26,9 +26,9 @@ object OrikaElementParametersFinder {
         val methodCallExpressionEl = PsiTreeUtil.getParentOfType(targetElement, PsiMethodCallExpression::class.java)
         val parametersEl = PsiTreeUtil.findChildOfType(methodCallExpressionEl, PsiExpressionList::class.java)
 
-        val sourceClass = PsiUtils.getClass(getSourceClass(parametersEl))
-        val destClass = PsiUtils.getClass(getDestClass(parametersEl))
-        val mapperClass = PsiUtils.getClass(getMapperClass(parametersEl))
+        val sourceClass = getClass(getSourceClass(parametersEl))
+        val destClass = getClass(getDestClass(parametersEl))
+        val mapperClass = getClass(getMapperClass(parametersEl))
 
         if (sourceClass == null || destClass == null || mapperClass == null) {
             return null
@@ -49,8 +49,8 @@ object OrikaElementParametersFinder {
     private fun getSourceClass(parentEl : PsiExpressionList?) : PsiType? {
         if (parentEl != null && parentEl.expressions.isNotEmpty()) {
             val sourceType = parentEl.expressions[0].type!!
-            if (PsiUtils.isCollection(sourceType)) {
-                return PsiUtils.getGenericType(sourceType)
+            if (isCollection(sourceType)) {
+                return getGenericType(sourceType)
             } else return sourceType
         }
         return null
@@ -60,7 +60,7 @@ object OrikaElementParametersFinder {
         if (parentEl != null && parentEl.expressions.isNotEmpty() && parentEl.expressions.size >= 2) {
             val secondParamType = parentEl.expressions[1].type
             if (secondParamType is PsiImmediateClassType) {
-                return PsiUtils.getGenericType(secondParamType)
+                return getGenericType(secondParamType)
             } else {
                 return secondParamType
             }
