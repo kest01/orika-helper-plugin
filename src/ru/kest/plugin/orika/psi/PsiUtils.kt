@@ -1,7 +1,7 @@
 package ru.kest.plugin.orika.psi
 
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiType
+import com.intellij.psi.impl.source.PsiImmediateClassType
 import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.util.PsiUtil
 
@@ -14,6 +14,9 @@ import com.intellij.psi.util.PsiUtil
     val OBJECT = "java.lang.Object"
 
     fun isImplements(type: PsiType, className: String) : Boolean {
+        if (type.canonicalText.startsWith(className)) {
+            return true
+        }
         for (superType in type.superTypes) {
             if (superType.canonicalText.startsWith(className)) {
                 return true
@@ -28,17 +31,14 @@ import com.intellij.psi.util.PsiUtil
         return false
     }
 
-    fun getClass(psiType : PsiType?) : PsiClass? {
-        return PsiTypesUtil.getPsiClass(psiType)
-    }
+    fun getClass(psiType : PsiType?) = PsiTypesUtil.getPsiClass(psiType)
 
-    fun isCollection(type: PsiType) : Boolean {
-        return isImplements(type, "java.util.Collection")
-    }
+    fun isCollection(type: PsiType) = isImplements(type, "java.util.Collection")
 
-    fun isEnum(type: PsiType) : Boolean {
-        return isImplements(type, "java.lang.Enum")
-    }
+    fun isMap(type: PsiType) = isImplements(type, "java.util.Map")
 
-    fun getGenericType(type: PsiType?) =
-            PsiUtil.extractIterableTypeParameter(type, false)
+    fun isEnum(type: PsiType) = isImplements(type, "java.lang.Enum")
+
+    fun getCollectionGenericType(type: PsiType?) = PsiUtil.extractIterableTypeParameter(type, false)
+
+    fun getGenericType(type: PsiImmediateClassType) = type.parameters[0]

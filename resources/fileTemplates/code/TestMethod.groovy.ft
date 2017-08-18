@@ -5,28 +5,26 @@
             #end
     #end
 #end
-#macro(createAssert $prefix $childFields)
-    #foreach($field in $childFields)
+#macro(createAssert $prefix $childFields)${stack.push($prefix)}#foreach($field in $childFields)#set( $prefix = ${stack.peek()} )
         #if ($field.children && !$field.children.isEmpty())
             #if (!$field.name)
                 #set( $len = $prefix.length() - 1 )
-                #set( $shortPrefix = $prefix.substring(0, $len) )
+                #set( $shortPrefix = "${prefix.substring(0, $len)}" )
                 #set( $newPrefix = "${shortPrefix}[0]." )
             #else
                 #set( $newPrefix = "${prefix}${field.name}." )
-            #end
-            #createAssert($newPrefix $field.children)
+            #end#createAssert("$newPrefix" $field.children)
         #else
             #if (!$field.name)
                 #set( $len = $prefix.length() - 1 )
-                #set( $shortPrefix = $prefix.substring(0, $len) )
+                #set( $shortPrefix = "${prefix.substring(0, $len)}" )
                 #set( $newPrefix = "${shortPrefix}[0]" )
     assert result.${newPrefix} == ${field.value}
             #else
     assert result.${prefix}${field.name} == ${field.value}
             #end
         #end
-    #end
+    #end#set( $temp = ${stack.pop()})
 #end
 @Test
 void "${METHOD_NAME}"() {

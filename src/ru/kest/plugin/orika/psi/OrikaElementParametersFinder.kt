@@ -50,7 +50,7 @@ object OrikaElementParametersFinder {
         if (parentEl != null && parentEl.expressions.isNotEmpty()) {
             val sourceType = parentEl.expressions[0].type!!
             if (isCollection(sourceType)) {
-                return getGenericType(sourceType)
+                return getCollectionGenericType(sourceType)
             } else return sourceType
         }
         return null
